@@ -1,135 +1,129 @@
 
+// Grab data from key.js and store in a variable
 var keys = require('./keys.js');
-var request = require("request");
-var fs = require('fs');
+
+
+// require packages
 var Twitter = require('twitter');
-var Spotify = require("node-spotify-api");
+var spotify = require('spotify');
+var request = require('request');
+var fs = require('fs');
 
 
-var twit = new Twitter(keys.twitter);
-var spot = new Spotify(keys.spotify);
+// function that displays tweets from twitter - WORKS!
+var getMyTweets = function() {
 
+	var client = new Twitter(keys.twitterKeys);
+	 
+	var params = {screen_name: 'melesa'};
 
-var input1 = process.argv[2];
-var input2 = process.argv[3];
+	client.get('statuses/user_timeline', params, function(error, tweets, response) {
+	  if (!error) {
+	    console.log(tweets);
 
-
-// User commands and input
-function commandInput(command, userInput) {
-	switch(command){
-		case "do-what-it-says": 
-		readRandom();
-		break;
-		case "my-tweets": 
-		myTweets();
-		break;
-		case "spotify-this-song": 
-		spotifySong(userInput);
-		break;
-		case "movie-this":
-		movieInfo(userInput);
-		break;
-
-	}
-};
-
-
-commandInput(input1, input2);
-
-
-
-// random.txt function
-function randomFile() {
-	fs.readFile("random.txt", function(err, data){
-		if(err) {
-			console.log(err);
-		}
-
-		var textInput = data.split("");
-			console.log(textInput);
-
-			input1 = textInput[0];
-			input2 = textInput[1];
-
-			commandInput(input1, input2);
-	})
-};
-
-
-// function for Twitter
-function myTweets() {
-	var userName = input2;
-	var param = {screen_name: userName};
-
-	twit.get("statuses/user_timeline", param, function(err, tweet, response) {
-		if(err) {
-			console.log(err);
-		}
-		else {
-			for (var i = 0; i < tweet.length; i++) {
-				console.log(tweet[i].text);
-				console.log("By: " + tweet[i].user.screen_name + "\n");			
-			}
-		}
+	    // loop thru each tweet and print the position, created at, and tweet
+	    for(var i=0; i<tweets.length; i++) {
+	    	console.log(tweets[i].created_at);
+	    	console.log(' ');
+	    	console.log(tweets[i].text);
+	    }
+	  }
 	});
-};
-
-
-
-// Spotify function
-function spotifySong() {
-	song = input2;
-
-	if(song === undefined) {
-		song = "The Sign";
-	}
-
-	spot.search ({type: "track", query:song, limit: 5}, function(err, data) {
-		if(err) {
-			return console.log("error" + err);
-		}
-		for (var i = 0; i < data.tracks.items.length; i++) {
-			console.log("Artist: " + data.tracks.items[i].artists[0].name);
-			console.log("Song: " + data.tracks.items[i].name);
-			console.log("Preview Link: " + data.tracks.items[i].external_urls.spotify);
-			console.log("Album: " + data.tracks.items[i].album.name + "\n");
-
-		}
-	});
-	
 }
 
 
-
-// omdb function
-function movieInfo() {
-	var movie = input2;
-
-	if(movie === undefined) {
-		movie = "Mr. Nobody";
-	}
-
-	var url = "http://www.omdbapi.com/?t=" +movie+ "&apikey=" +keys.omdb.api_key;
-
-	request(url, function(err, response, body) {
-		if (err) {
-			console.log(err)
-		}
-		if (response.statusCode === 200) {
-
-		var content = JSON.parse(body)
-
-		console.log("The title for the movie is: " + content.Title);
-		console.log("This movie was made in: " + content.Year);
-		console.log("This movie was made in: " + content.Country);
-		console.log("The IMDB rating of the movie is: " + content.Rating[0].Value);
-		console.log("The Rotton Tomato rating for this movie is: " + content.Rating[1].Value);
-		console.log("The plot of this movie is: " + content.Plot);
-		console.log("The actors in this movie are: " + content.Actors);
-		
-
-		}
-	})
+// function that displays artists names from spotify
+var getArtistNames = function(artist) {
+	return artist.name;
 }
+
+// function that displays songs from spotify - ISNT WORKING!
+var getMySpotify = function(songName) {
+
+	spotify.search({ type: 'track', query: 'songName' }, function(err, data) {
+	    if (err) {
+	        console.log('Error occurred: ' + err);
+	        return;
+	    }
+
+	 // loop thru songs and pull out all the desired attributes 
+	    var songs = data.tracks.items;
+	    for(var i=0; i<songs.length; i++) {
+	    	console.log(i);
+	    	console.log('artist(s): ' + songs[i].artists.map(
+	    		getArtistNames));
+	    	console.log('song name: ' + songs[i].name);
+	    	console.log('preview song: ' + songs[i].name);
+	    	console.log('album: ' + songs[i].album.name);
+	    } 
+	});
+}
+
+
+// function that displays a given movie's attributes from omdb - ISNT WORKING!
+var getMyMovie = function(movieName) {
+
+	request('http://www.omdbapi.com/?t=' + movieName + '&40e9cece', function (error, response, body) {
+
+	  if(!error && response.statusCode ==200) {
+
+	  	var jsonData = JSON.parse(body);
+
+	  	console.log('Title: ' + jsonData.Title);
+	  	console.log('Year: ' + jsonData.Year);
+	  	console.log('Rotten tomatoes rating: ' + jsonData.tomatoRating);
+	  	console.log('Country: ' + jsonData.Country);
+	  	console.log('Language: ' + jsonData.Language);
+	  	console.log('Plot: ' + jsonData.Plot);
+	  	console.log('Actors: ' + jsonData.Actors);
+	  } 
+	  
+	});
+}
+
+// node file system package instructions to read the file random.txt - WORKS!
+var doWhatSays = function() {
+
+	fs.readFile('random.txt', 'utf8', (err, data) => {
+	  if (err) throw err;
+
+	  var dataArr = data.split(',');
+
+	  if (dataArr.length == 2) {
+	  	pick(dataArr[0], dataArr[1]);
+	  } else if (dataArr.length == 1){
+	  	pick(dataArr[0]);
+	  }
+	  
+	});
+}
+
+// runs tweets, spotify songs, movie, and other random entries when the user requests 
+// OR a message saying Liri doesnt know appears
+var pick = function(caseData, functionData) {
+	switch(caseData) {
+		case 'my-tweets':
+			getMyTweets();
+			break;
+		case 'spotify-this-song':
+			getMySpotify(functionData);
+			break;
+		case 'movie-this':
+			getMyMovie(functionData);
+		case 'do-what-it-says':
+			doWhatSays();
+			break;
+		default:
+		console.log('Liri does not know that');
+	}
+}
+
+var runThis = function(input1, input2) {
+	pick(input1, input2);
+};
+
+runThis(process.argv[2], process.argv[3]);
+
+
 
 
