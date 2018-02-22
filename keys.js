@@ -11,7 +11,7 @@ exports.twitterKeys = {
 
 
 // spotify
-var spotifyKeys = {
+exports.spotifyKeys = {
 id: "affcfe6dcc984a17880607cb90e35187",
 secret: "45f871c70cbd427296293df8ff99cf2a"
 }

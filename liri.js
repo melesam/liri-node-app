@@ -3,9 +3,10 @@
 var keys = require('./keys.js');
 
 
+
 // require packages
 var Twitter = require('twitter');
-var spotify = require('spotify');
+var Spotify = require('node-spotify-api');
 var request = require('request');
 var fs = require('fs');
 
@@ -33,22 +34,24 @@ var getMyTweets = function() {
 
 
 // function that displays artists names from spotify
+var spotify = new Spotify(keys.spotifyKeys); 
+
 var getArtistNames = function(artist) {
 	return artist.name;
 }
 
-// function that displays songs from spotify - ISNT WORKING!
+// function that displays songs from spotify - WORKS!
 var getMySpotify = function(songName) {
 
-	spotify.search({ type: 'track', query: 'songName' }, function(err, data) {
+	spotify.search({ type: 'track', query: songName }, function(err, data) {
 	    if (err) {
 	        console.log('Error occurred: ' + err);
 	        return;
 	    }
 
-	 // loop thru songs and pull out all the desired attributes 
+	 //loop thru songs and pull out all the desired attributes 
 	    var songs = data.tracks.items;
-	    for(var i=0; i<songs.length; i++) {
+	    for(var i=0; i<2; i++) {
 	    	console.log(i);
 	    	console.log('artist(s): ' + songs[i].artists.map(
 	    		getArtistNames));
@@ -60,10 +63,10 @@ var getMySpotify = function(songName) {
 }
 
 
-// function that displays a given movie's attributes from omdb - ISNT WORKING!
+// function that displays a given movie's attributes from omdb - WORKS!
 var getMyMovie = function(movieName) {
 
-	request('http://www.omdbapi.com/?t=' + movieName + '&40e9cece', function (error, response, body) {
+	request('http://www.omdbapi.com/?t=' + movieName + '&apikey=40e9cece', function (error, response, body) {
 
 	  if(!error && response.statusCode ==200) {
 
@@ -101,6 +104,7 @@ var doWhatSays = function() {
 // runs tweets, spotify songs, movie, and other random entries when the user requests 
 // OR a message saying Liri doesnt know appears
 var pick = function(caseData, functionData) {
+	console.log(caseData, functionData);
 	switch(caseData) {
 		case 'my-tweets':
 			getMyTweets();
@@ -110,6 +114,7 @@ var pick = function(caseData, functionData) {
 			break;
 		case 'movie-this':
 			getMyMovie(functionData);
+			break;
 		case 'do-what-it-says':
 			doWhatSays();
 			break;
